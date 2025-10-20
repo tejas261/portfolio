@@ -20,10 +20,10 @@ if [ ! -d "node_modules" ]; then
     npm install --legacy-peer-deps
 fi
 
-# Start the development server
-echo "🎯 Starting React development server..."
+# Start the development server (Vite)
+echo "🎯 Starting Vite development server..."
 echo "📍 Frontend will be available at: http://localhost:3000"
 echo ""
-npm start
+npm run dev
 
 
