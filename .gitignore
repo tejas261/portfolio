@@ -1,0 +1,58 @@
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Environment files (in any folder)
+.env
+.env.*
+*.env
+
+# Node dependencies
+node_modules/
+
+# Build outputs
+build/
+dist/
+coverage/
+.nyc_output/
+
+# Logs and temporary files
+logs/
+*.log
+tmp/
+tmp/**
+
+# Python caches and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+
+# Python packaging/coverage
+*.egg-info/
+.eggs/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+# Project-specific venv used by backend
+backend/portfolio/
+
+# Yarn/PNP
+.pnp
+.pnp.js
+
+# Backend RAG vector store artifacts
+backend/rag/vector_store/
+
+# Lock files (root only)
+/package-lock.json
