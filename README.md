@@ -182,7 +182,7 @@ PORT=8000                           # Backend port
 ### Frontend (.env)
 
 ```bash
-REACT_APP_BACKEND_URL=http://localhost:8000  # Backend API URL
+VITE_BACKEND_URL=http://localhost:8000  # Backend API URL
 ```
 
 ## 🎯 API Endpoints
@@ -264,7 +264,7 @@ Edit `backend/rag/agent.py` to customize:
 2. **Frontend can't connect to backend**
 
    - Verify backend is running on port 8000
-   - Check `REACT_APP_BACKEND_URL` in frontend .env
+   - Check `VITE_BACKEND_URL` in frontend .env
    - App will fall back to mock responses
 
 3. **npm install fails**
