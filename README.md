@@ -2,11 +2,6 @@
 
 A modern, intelligent portfolio application featuring a RAG-based (Retrieval Augmented Generation) conversational AI assistant powered by GPT-4, LangChain, and LangGraph.
 
-![Tech Stack](https://img.shields.io/badge/Frontend-React-61DAFB?logo=react)
-![Backend](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi)
-![AI](https://img.shields.io/badge/AI-GPT--4-412991?logo=openai)
-![Database](https://img.shields.io/badge/Database-MongoDB-47A248?logo=mongodb)
-
 ## ✨ Features
 
 ### 📋 Portfolio View
@@ -180,8 +175,6 @@ portfolio/
 
 ```bash
 OPENAI_API_KEY=sk-...              # Required: Your OpenAI API key
-MONGO_URL=mongodb://localhost:27017 # Your MongoDB connection string
-DB_NAME=portfolio_db                # Database name
 CORS_ORIGINS=http://localhost:3000  # Allowed origins
 PORT=8000                           # Backend port
 ```
@@ -260,8 +253,6 @@ Edit `backend/rag/agent.py` to customize:
 
 ## 🐛 Troubleshooting
 
-See [SETUP.md](SETUP.md) for detailed troubleshooting guide.
-
 **Common Issues:**
 
 1. **RAG system not initialized**
@@ -302,8 +293,4 @@ This is a personal portfolio template, but suggestions and improvements are welc
 
 ## 📧 Contact
 
-For questions about this project, check out the AI Chat feature - it's built to answer questions about the portfolio! 😉
-
----
-
-**Built with ❤️ using GPT-4, LangChain, and React**
+For questions about this project, check out the AI Chat feature - it's built to answer questions about me! 😉
