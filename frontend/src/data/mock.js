@@ -15,7 +15,7 @@ export const portfolioData = {
     {
       id: 1,
       company: "FYND",
-      role: "Graduate SDE (Frontend Developer)",
+      role: "Graduate SDE",
       duration: "Oct 2024 - Present",
       location: "Bengaluru, KA",
       description: [
@@ -105,52 +105,9 @@ export const portfolioData = {
     degree: "Bachelor of Engineering - Computer Science",
     institution: "Don Bosco Institute of Technology (VTU)",
     duration: "December 2020 - Present",
-    cgpa: "9.0",
+    cgpa: "8.3",
     location: "Bengaluru, KA",
   },
 
   certifications: ["Responsive Web Design - freeCodeCamp"],
 };
-
-export const mockChatResponses = [
-  {
-    trigger: ["hello", "hi", "hey"],
-    response:
-      "Hey! 👋 What's up? Feel free to ask me about my work, projects, or anything tech-related!",
-  },
-  {
-    trigger: ["experience", "work", "job"],
-    response:
-      "I'm a Graduate SDE at FYND, working with Next.js, Node, and TypeScript. Building full-stack features and REST APIs with Express and Prisma. Pretty fun stuff!",
-  },
-  {
-    trigger: ["projects", "built", "created"],
-    response:
-      "My favorite is the PR Analyser - uses GPT-4 to auto-review code and catch bugs. Cut review time by 60%! Also working on an AI Portfolio Manager with LangChain.",
-  },
-  {
-    trigger: ["skills", "technologies", "tech stack"],
-    response:
-      "I'm into JavaScript/TypeScript, Python, React, Next.js, and Node. On the AI side - LangChain, LangGraph, and GPT-4. Also work with MongoDB and AWS.",
-  },
-  {
-    trigger: ["ai", "langchain", "langgraph", "agent"],
-    response:
-      "Yeah, I'm super into AI agents! Built production systems with LangChain and LangGraph - automated PR reviews, portfolio managers, that kind of thing. It's honestly my favorite area right now.",
-  },
-  {
-    trigger: ["education", "college", "university"],
-    response:
-      "Doing my BE in CS from Don Bosco (VTU) with a 9.0 CGPA. Good times!",
-  },
-  {
-    trigger: ["contact", "reach", "email"],
-    response:
-      "Sure! Reach me at tejasmt884@gmail.com or +91 7411545570. I'm in Bengaluru and always down to chat about cool projects!",
-  },
-  {
-    trigger: ["default"],
-    response:
-      "Not sure I got that - wanna know about my experience, projects, skills, or something else?",
-  },
-];

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { mockChatResponses } from "../data/mock.js";
 import { Send, Bot, User, AlertCircle } from "lucide-react";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
@@ -45,23 +44,6 @@ const ChatView: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  const findMockResponse = (userMessage: string) => {
-    const lowerMessage = userMessage.toLowerCase();
-
-    for (const mockResponse of mockChatResponses) {
-      if (
-        mockResponse.trigger.some((trigger) => lowerMessage.includes(trigger))
-      ) {
-        return mockResponse.response;
-      }
-    }
-
-    return (
-      mockChatResponses.find((r) => r.trigger.includes("default"))?.response ||
-      ""
-    );
-  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -109,19 +91,6 @@ const ChatView: React.FC = () => {
         if (error.response?.status === 503 || error.code === "ECONNABORTED") {
           setApiError(true);
           setUseRealAPI(false);
-
-          // Use mock response as fallback
-          setTimeout(() => {
-            const mockResponse = findMockResponse(userInput);
-            const botMessage: Message = {
-              id: messages.length + 2,
-              sender: "bot",
-              text: mockResponse,
-              timestamp: new Date(),
-            };
-            setMessages((prev) => [...prev, botMessage]);
-            setIsTyping(false);
-          }, 500);
         } else {
           // Show error message
           const errorMessage: Message = {
@@ -134,19 +103,6 @@ const ChatView: React.FC = () => {
           setIsTyping(false);
         }
       }
-    } else {
-      // Use mock responses
-      setTimeout(() => {
-        const mockResponse = findMockResponse(userInput);
-        const botMessage: Message = {
-          id: messages.length + 2,
-          sender: "bot",
-          text: mockResponse,
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, botMessage]);
-        setIsTyping(false);
-      }, 800 + Math.random() * 1200);
     }
   };
 
@@ -167,7 +123,7 @@ const ChatView: React.FC = () => {
             <p className="chat-header-subtitle">
               {apiError
                 ? "⚠️ Limited responses - Add API key for full chat"
-                : "Ask me anything • Powered by AI"}
+                : "Ask me anything"}
             </p>
           </div>
         </div>
