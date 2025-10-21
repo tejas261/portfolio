@@ -6,8 +6,8 @@ export const portfolioData = {
     email: "tejasmt884@gmail.com",
     phone: "+91 7411545570",
     location: "Bengaluru, India",
-    linkedin: "https://linkedin.com/in/tejas-m",
-    github: "https://github.com/tejas-m",
+    linkedin: "https://linkedin.com/in/tejas26",
+    github: "https://github.com/tejas261",
     bio: "Graduate Software Engineer at FYND with expertise in full-stack development, AI agents, and modern web technologies. Passionate about building intelligent systems using LangChain, LangGraph, and cutting-edge AI frameworks.",
   },
 

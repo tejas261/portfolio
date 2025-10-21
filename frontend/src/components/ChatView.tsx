@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Send, Bot, User, AlertCircle } from "lucide-react";
 import axios from "axios";
-import { v4 as uuidv4 } from "uuid";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL as string;
 const API = `${BACKEND_URL}/api`;
@@ -13,7 +12,9 @@ type Message = {
   timestamp: Date;
 };
 
-const ChatView: React.FC = () => {
+type Props = { sessionId: string };
+
+const ChatView: React.FC<Props> = ({ sessionId }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -24,15 +25,6 @@ const ChatView: React.FC = () => {
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [sessionId] = useState(() => {
-    // Check if session ID exists in localStorage
-    let id = localStorage.getItem("chat_session_id");
-    if (!id) {
-      id = uuidv4();
-      localStorage.setItem("chat_session_id", id);
-    }
-    return id as string;
-  });
   const [useRealAPI, setUseRealAPI] = useState(true);
   const [apiError, setApiError] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -114,7 +106,7 @@ const ChatView: React.FC = () => {
   };
 
   return (
-    <div className="chat-container">
+    <div className="chat-container h-[90vh]">
       <div className="chat-header">
         <div className="chat-header-content">
           <Bot className="chat-header-icon" />
@@ -132,14 +124,11 @@ const ChatView: React.FC = () => {
       {apiError && (
         <div className="api-error-banner">
           <AlertCircle size={16} />
-          <span>
-            AI backend not configured. Using mock responses. Add OPENAI_API_KEY
-            to enable intelligent responses.
-          </span>
+          <span>AI backend not configured. Please add an API key.</span>
         </div>
       )}
 
-      <div className="chat-messages">
+      <div className="chat-messages h-80">
         {messages.map((message) => (
           <div key={message.id} className={`message-wrapper ${message.sender}`}>
             <div className="message-avatar">

@@ -6,6 +6,8 @@ from sentence_transformers.util import cos_sim
 import numpy as np
 import requests
 import os
+import json
+import re
 from langchain.schema import HumanMessage, AIMessage
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
@@ -95,9 +97,10 @@ class RAGAgent:
         # Persona + context prompt
         system_instructions = (
             "You are Tejas M responding directly to someone asking about you. "
-            "Talk like a real person - casual, natural, and authentic. Keep it short (2-3 sentences). "
-            "Answer in clean plain text only. Do not include any special tokens, BOS/EOS markers, or model boundary markers "
-            "Do not echo the question or the prompt. Return only the final answer."
+            "Keep replies short (2-3 sentences), friendly, and natural. "
+            "If a request is disallowed or harassing, politely refuse in plain text. "
+            "Output must be human‑readable plain text only. Do not include any special tokens, BOS/EOS markers, or markdown. "
+            "Canonical profile: You are a full‑stack engineer (frontend and backend). When discussing your work at Fynd, explicitly describe full‑stack responsibilities; never imply you handled only frontend. If retrieved context conflicts with this, prefer this canonical profile."
         )
         prompt = (
             f"{system_instructions}\n\n"
@@ -134,12 +137,13 @@ class RAGAgent:
             if resp.status_code >= 400:
                 raise RuntimeError(f"OpenRouter API {resp.status_code}: {resp.text[:300]}")
             data = resp.json()
-            text = (
+            content = (
                 data.get("choices", [{}])[0]
                 .get("message", {})
                 .get("content")
                 or str(data)
             )
+            text = self._to_display_text(content)
         except Exception as e:
             print(f"[RAG] OpenRouter generate_response error: {e}")
             text = "Sorry, I had trouble generating a response just now. Please try again."
@@ -147,6 +151,52 @@ class RAGAgent:
         state["messages"].append(AIMessage(content=text))
         return state
     
+    def _clean_text(self, text: str) -> str:
+        """Strip common special tokens BOS/EOS and model boundary markers."""
+        patterns = [
+            r"<\|begin[_\s]*of[_\s]*sentence\|>",
+            r"<\|end[_\s]*of[_\s]*sentence\|>",
+            r"<\|begin[_\s]*of[_\s]*text\|>",
+            r"<\|end[_\s]*of[_\s]*text\|>",
+            r"<s>", r"</s>",
+            r"<｜begin▁of▁sentence｜>",
+            r"<｜end▁of▁sentence｜>",
+        ]
+        out = text or ""
+        for p in patterns:
+            out = re.sub(p, "", out, flags=re.IGNORECASE)
+        return out.strip()
+
+    def _to_display_text(self, raw: str) -> str:
+        """If the model returned JSON, show its message; otherwise show cleaned text."""
+        if not raw:
+            return ""
+        s = raw.strip()
+        # Remove code fences
+        if s.startswith("```"):
+            s = s.strip("`\n ")
+        # Try parse as JSON (handles policy/error blocks)
+        try:
+            obj = json.loads(s)
+            if isinstance(obj, dict):
+                msg = obj.get("message") or obj.get("content") or s
+                return self._clean_text(str(msg))
+        except json.JSONDecodeError:
+            # Attempt to extract first JSON object if surrounded by extra text
+            start = s.find("{")
+            end = s.rfind("}")
+            if start != -1 and end != -1 and end > start:
+                snippet = s[start:end+1]
+                try:
+                    obj = json.loads(snippet)
+                    if isinstance(obj, dict):
+                        msg = obj.get("message") or obj.get("content") or snippet
+                        return self._clean_text(str(msg))
+                except Exception:
+                    pass
+        # Fall back to cleaned plain text
+        return self._clean_text(s)
+
     def _build_graph(self) -> StateGraph:
         """Build the LangGraph workflow"""
         workflow = StateGraph(AgentState)

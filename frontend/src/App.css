@@ -56,7 +56,6 @@ body {
   padding: var(--spacing-md);
   background: rgba(10, 10, 10, 0.8);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--color-border);
 }
 
 .nav-tab {
@@ -108,7 +107,6 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  padding: var(--spacing-2xl) 0;
   overflow: hidden;
 }
 
@@ -338,6 +336,18 @@ body {
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-xs);
   flex-wrap: wrap;
+}
+
+.floating-nav {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
 }
 
 .timeline-role {
@@ -608,7 +618,6 @@ body {
 .chat-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 80px);
   max-width: 900px;
   margin: 0 auto;
 }
@@ -902,10 +911,6 @@ body {
 
   .message-bubble {
     max-width: 85%;
-  }
-
-  .chat-input-wrapper {
-    flex-direction: column;
   }
 
   .chat-input {

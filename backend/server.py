@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 import os
@@ -44,6 +45,18 @@ api_router = APIRouter(prefix="/api")
 @api_router.get("/")
 async def root():
     return {"message": "Portfolio API is running", "status": "healthy"}
+
+# Download resume
+@api_router.get("/resume")
+async def download_resume():
+    resume_path = ROOT_DIR / 'data' / 'resume.pdf'
+    if not resume_path.exists():
+        raise HTTPException(status_code=404, detail="Resume not found")
+    return FileResponse(
+        path=str(resume_path),
+        filename="resume.pdf",
+        media_type="application/pdf",
+    )
 
 # Chat endpoints
 @api_router.post("/chat", response_model=ChatResponse)

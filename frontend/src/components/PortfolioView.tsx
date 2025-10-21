@@ -6,10 +6,11 @@ import {
   Lightbulb,
   Mail,
   MapPin,
-  Phone,
+  Download,
   Github,
   Linkedin,
   Award,
+  Book,
 } from "lucide-react";
 
 const PortfolioView: React.FC = () => {
@@ -200,7 +201,7 @@ const PortfolioView: React.FC = () => {
       {/* Education Section */}
       <section className="section-container" id="education">
         <div className="section-header">
-          <Award className="section-icon" />
+          <Book className="section-icon" />
           <h2 className="section-title">Education</h2>
         </div>
         <div className="education-card">
@@ -232,11 +233,11 @@ const PortfolioView: React.FC = () => {
             <span>{portfolioData.personal.email}</span>
           </a>
           <a
-            href={`tel:${portfolioData.personal.phone}`}
+            href={`${import.meta.env.VITE_BACKEND_URL}/api/resume`}
             className="contact-item"
           >
-            <Phone size={24} />
-            <span>{portfolioData.personal.phone}</span>
+            <Download size={24} />
+            <span>Download Resume</span>
           </a>
           <div className="contact-item">
             <MapPin size={24} />
