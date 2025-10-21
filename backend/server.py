@@ -129,10 +129,16 @@ async def debug_openrouter():
 # Include the router in the main app
 app.include_router(api_router)
 
+_origins_raw = os.environ.get('CORS_ORIGINS', '')
+_origins = [o.strip() for o in _origins_raw.split(',') if o.strip()]
+if not _origins:
+    _origins = ["*"]
+_allow_creds = False if "*" in _origins else True
+
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_credentials=_allow_creds,
+    allow_origins=_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
