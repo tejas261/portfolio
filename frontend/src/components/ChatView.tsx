@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Send, Bot, User, AlertCircle } from "lucide-react";
 import axios from "axios";
+import image from "../assets/pic.jpg";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL as string;
 const API = `${BACKEND_URL}/api`;
@@ -133,7 +134,11 @@ const ChatView: React.FC<Props> = ({ sessionId }) => {
           <div key={message.id} className={`message-wrapper ${message.sender}`}>
             <div className="message-avatar">
               {message.sender === "bot" ? (
-                <Bot size={20} />
+                <img
+                  src={image}
+                  alt="owner"
+                  className="rounded-full scale-150 w-7 h-7 object-cover"
+                />
               ) : (
                 <User size={20} />
               )}
@@ -153,7 +158,11 @@ const ChatView: React.FC<Props> = ({ sessionId }) => {
         {isTyping && (
           <div className="message-wrapper bot">
             <div className="message-avatar">
-              <Bot size={20} />
+              <img
+                src={image}
+                alt="owner"
+                className="rounded-full scale-150 w-7 h-7 object-cover"
+              />
             </div>
             <div className="message-bubble typing-indicator">
               <span></span>
