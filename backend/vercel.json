@@ -2,10 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [{ "source": "/(.*)", "destination": "/api/index.py" }],
   "functions": {
-    "api/**/*.py": {
+    "api/index.py": {
+      "includeFiles": "data/**",
       "memory": 1024,
-      "maxDuration": 30,
-      "includeFiles": ["data/**", "models/**", "rag/**"]
+      "maxDuration": 30
     }
   }
 }
