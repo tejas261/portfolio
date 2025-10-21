@@ -1,15 +1,11 @@
 {
-  "builds": [
-    {
-      "src": "server.py",
-      "use": "@vercel/python",
-      "config": { "maxLambdaSize": "15mb" }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [{ "source": "/(.*)", "destination": "/api/index.py" }],
+  "functions": {
+    "api/**/*.py": {
+      "memory": 1024,
+      "maxDuration": 30,
+      "includeFiles": ["data/**", "models/**", "rag/**"]
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "server.py"
-    }
-  ]
+  }
 }
