@@ -1,11 +1,15 @@
 from typing import Dict, Any, List, Annotated
-from langchain_openai import ChatOpenAI
 from langchain_community.vectorstores import FAISS
-from langchain.schema import HumanMessage, AIMessage, SystemMessage
+# Removed HuggingFaceHub; using direct Inference API calls
+from sentence_transformers import SentenceTransformer
+from sentence_transformers.util import cos_sim
+import numpy as np
+import requests
+import os
+from langchain.schema import HumanMessage, AIMessage
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
 from typing_extensions import TypedDict
-import json
 
 # Define the state for our agent
 class AgentState(TypedDict):
@@ -14,74 +18,133 @@ class AgentState(TypedDict):
     session_id: str
 
 class RAGAgent:
-    def __init__(self, vector_store: FAISS, openai_api_key: str, model_name: str = "gpt-4"):
+    def __init__(self, vector_store: FAISS, openrouter_api_key: str | None = None, model_name: str = "openai/gpt-oss-20b:free"):
         self.vector_store = vector_store
-        self.llm = ChatOpenAI(
-            model=model_name,
-            temperature=0.9,  # Higher temperature for more natural, varied responses
-            openai_api_key=openai_api_key
-        )
+        self.model_name = model_name
+        self.openrouter_api_key = openrouter_api_key or os.environ.get("OPENROUTER_API_KEY")
+        self.api_url = "https://openrouter.ai/api/v1/chat/completions"
+        # Local encoder for retrieval (fast and free)
+        self.st_model = SentenceTransformer("all-MiniLM-L6-v2")
+        # Precompute embeddings for all stored chunks once
+        self.chunks: List[str] = []
+        self.chunk_embeddings = None
+        try:
+            # Extract all documents from the LangChain FAISS docstore
+            docs = []
+            if hasattr(self.vector_store, "docstore") and hasattr(self.vector_store.docstore, "_dict"):
+                docs = list(self.vector_store.docstore._dict.values())
+            self.chunks = [getattr(d, "page_content", None) for d in docs if getattr(d, "page_content", None)]
+            if self.chunks:
+                self.chunk_embeddings = self.st_model.encode(self.chunks, convert_to_tensor=True)
+        except Exception as e:
+            print(f"[RAG] Failed to precompute chunk embeddings: {e}")
         self.graph = self._build_graph()
         self.session_memory: Dict[str, List] = {}
     
     def retrieve_context(self, state: AgentState) -> AgentState:
-        """Retrieve relevant context from vector store"""
+        """Retrieve relevant context using sentence-transformers (cosine sim)."""
         # Get the last user message
         last_message = state["messages"][-1]
         query = last_message.content if hasattr(last_message, 'content') else str(last_message)
         
-        # Retrieve relevant documents
-        docs = self.vector_store.similarity_search(query, k=3)
-        context = "\n\n".join([doc.page_content for doc in docs])
-        
+        context = ""
+        try:
+            if self.chunks and self.chunk_embeddings is not None:
+                query_embedding = self.st_model.encode(query, convert_to_tensor=True)
+                scores = cos_sim(query_embedding, self.chunk_embeddings)
+                # scores shape: (1, N)
+                k = min(3, len(self.chunks))
+                top_idx = scores.squeeze(0).argsort(descending=True)[:k]
+                retrieved = [self.chunks[int(i)] for i in top_idx]
+                context = "\n\n".join(retrieved)
+            else:
+                # Fallback to FAISS search if precomputed chunks missing
+                docs = self.vector_store.similarity_search(query, k=3)
+                context = "\n\n".join([doc.page_content for doc in docs])
+        except Exception as e:
+            print(f"[RAG] retrieve_context error, falling back to empty context: {e}")
+
         state["context"] = context
         return state
     
+    def _format_prompt(self, system_prompt: str, messages: List[Any]) -> str:
+        """Flatten chat history into a single prompt for text-generation models."""
+        lines: List[str] = [system_prompt.strip(), "", "Conversation:"]
+        for msg in messages[-5:]:
+            role = None
+            content = None
+            if isinstance(msg, HumanMessage) or getattr(msg, 'role', None) == 'user':
+                role = "User"
+                content = msg.content if hasattr(msg, 'content') else str(msg)
+            elif isinstance(msg, AIMessage) or getattr(msg, 'role', None) == 'assistant':
+                role = "Assistant"
+                content = msg.content if hasattr(msg, 'content') else str(msg)
+            if role and content:
+                lines.append(f"{role}: {content}")
+        lines.append("Assistant:")
+        return "\n".join(lines)
+
     def generate_response(self, state: AgentState) -> AgentState:
-        """Generate response using LLM with retrieved context"""
+        """Generate response via OpenRouter Chat Completions using DeepSeek."""
         context = state.get("context", "")
         messages = state["messages"]
-        
-        # Build system message with context
-        system_prompt = f"""You are Tejas M responding directly to someone asking about you. Talk like a real person - casual, natural, and authentic.
+        # Last user question
+        last_user = next((m for m in reversed(messages) if isinstance(m, HumanMessage) or getattr(m, 'role', None) == 'user'), None)
+        question = last_user.content if last_user and hasattr(last_user, 'content') else ""
 
-PERSONALITY:
-- You're chill and conversational, like talking to a friend over coffee
-- Keep it SHORT - 2-3 sentences max unless asked for details
-- Use casual language: "yeah", "pretty cool", "honestly", "actually"
-- Show personality! Use natural expressions and be relatable
-- No corporate speak or formal jargon
-- Speak naturally as yourself in first person
+        # Persona + context prompt
+        system_instructions = (
+            "You are Tejas M responding directly to someone asking about you. "
+            "Talk like a real person - casual, natural, and authentic. Keep it short (2-3 sentences). "
+            "Answer in clean plain text only. Do not include any special tokens, BOS/EOS markers, or model boundary markers "
+            "Do not echo the question or the prompt. Return only the final answer."
+        )
+        prompt = (
+            f"{system_instructions}\n\n"
+            f"Context:\n{context}\n\n"
+            f"Question: {question}\n"
+            f"Answer:"
+        )
 
-STYLE:
-- Get straight to the point
-- Don't over-explain unless asked
-- Use contractions (I'm, you're, that's)
-- Be humble but confident
-- If you don't know something, just say "Not sure about that one" or "Can't remember that off the top of my head"
-- Never refer to yourself as an AI or assistant - you ARE Tejas
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+        if self.openrouter_api_key:
+            headers["Authorization"] = f"Bearer {self.openrouter_api_key}"
+        # Optional but recommended headers per OpenRouter docs
+        if os.environ.get("OPENROUTER_SITE_URL"):
+            headers["HTTP-Referer"] = os.environ["OPENROUTER_SITE_URL"]
+        if os.environ.get("OPENROUTER_APP_NAME"):
+            headers["X-Title"] = os.environ["OPENROUTER_APP_NAME"]
 
-ABOUT YOU (USE THIS INFO):
-{context}
+        payload = {
+            "model": self.model_name,
+            "temperature": 0.9,
+            "top_p": 0.9,
+            "max_tokens": 300,
+            "messages": [
+                {"role": "system", "content": system_instructions},
+                {"role": "user", "content": prompt},
+            ],
+        }
 
-Remember: You're Tejas chatting naturally. Short, authentic responses. Like texting a friend, not writing an essay."""
-        
-        # Prepare messages for LLM
-        llm_messages = [SystemMessage(content=system_prompt)]
-        
-        # Add conversation history (last 5 messages for context)
-        for msg in messages[-5:]:
-            if isinstance(msg, HumanMessage) or hasattr(msg, 'role') and msg.role == 'user':
-                llm_messages.append(HumanMessage(content=msg.content if hasattr(msg, 'content') else str(msg)))
-            elif isinstance(msg, AIMessage) or hasattr(msg, 'role') and msg.role == 'assistant':
-                llm_messages.append(AIMessage(content=msg.content if hasattr(msg, 'content') else str(msg)))
-        
-        # Generate response
-        response = self.llm.invoke(llm_messages)
-        
-        # Add AI response to messages
-        state["messages"].append(AIMessage(content=response.content))
-        
+        try:
+            resp = requests.post(self.api_url, headers=headers, json=payload, timeout=120)
+            if resp.status_code >= 400:
+                raise RuntimeError(f"OpenRouter API {resp.status_code}: {resp.text[:300]}")
+            data = resp.json()
+            text = (
+                data.get("choices", [{}])[0]
+                .get("message", {})
+                .get("content")
+                or str(data)
+            )
+        except Exception as e:
+            print(f"[RAG] OpenRouter generate_response error: {e}")
+            text = "Sorry, I had trouble generating a response just now. Please try again."
+
+        state["messages"].append(AIMessage(content=text))
         return state
     
     def _build_graph(self) -> StateGraph:
