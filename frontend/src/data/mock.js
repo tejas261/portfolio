@@ -87,17 +87,18 @@ export const portfolioData = {
   ],
 
   skills: {
-    languages: ["JavaScript", "TypeScript", "Python", "Java"],
+    languages: ["TypeScript", "Python", "Java"],
     frontend: ["Next.js", "React", "Tailwind CSS", "Shadcn UI", "Bootstrap"],
-    backend: ["Node.js", "Express.js", "FastAPI", "RESTful APIs"],
-    ai: ["LangChain", "LangGraph", "OpenAI", "RAG", "Agentic Workflows"],
-    databases: ["MongoDB", "PostgreSQL", "MySQL", "Prisma"],
+    backend: ["Node.js", "Express.js", "FastAPI", "REST APIs"],
+    ai: ["OpenAI", "LangChain", "LangGraph", "RAG", "Agentic Workflows", "MCP"],
+    databases: ["MongoDB", "PostgreSQL", "MySQL"],
     tools: [
       "Git/GitHub",
       "AWS (EC2, S3, Amplify)",
       "Vercel",
       "Azure DevOps",
       "NPM",
+      "Prisma",
     ],
   },
 
