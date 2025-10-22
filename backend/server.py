@@ -39,7 +39,7 @@ except Exception as e:
 app = FastAPI()
 
 # Create a router with the /api prefix
-api_router = APIRouter()
+api_router = APIRouter(prefix="/api")
 
 # Health check endpoint
 @api_router.get("/")
