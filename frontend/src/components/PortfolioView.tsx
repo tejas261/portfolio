@@ -70,7 +70,7 @@ const PortfolioView: React.FC = () => {
               className={`timeline-item ${isVisible ? "slide-up" : ""}`}
               style={{ animationDelay: `${index * 0.2}s` }}
             >
-              <div className="timeline-marker max-md:-left-[30px]"></div>
+              <div className="timeline-marker max-md:-left-[30px]" />
               <div className="timeline-content">
                 <div className="timeline-header">
                   <h3 className="timeline-role">{exp.role}</h3>
