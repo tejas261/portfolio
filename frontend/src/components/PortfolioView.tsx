@@ -20,6 +20,18 @@ const PortfolioView: React.FC = () => {
     setIsVisible(true);
   }, []);
 
+  async function downloadResume() {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/resume`
+    );
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "resume.pdf";
+    a.click();
+  }
+
   return (
     <div className="portfolio-container">
       {/* Hero Section */}
@@ -58,7 +70,7 @@ const PortfolioView: React.FC = () => {
               className={`timeline-item ${isVisible ? "slide-up" : ""}`}
               style={{ animationDelay: `${index * 0.2}s` }}
             >
-              <div className="timeline-marker"></div>
+              <div className="timeline-marker max-md:-left-[30px]"></div>
               <div className="timeline-content">
                 <div className="timeline-header">
                   <h3 className="timeline-role">{exp.role}</h3>
@@ -232,10 +244,7 @@ const PortfolioView: React.FC = () => {
             <Mail size={24} />
             <span>{portfolioData.personal.email}</span>
           </a>
-          <a
-            href={`${import.meta.env.VITE_BACKEND_URL}/api/resume`}
-            className="contact-item"
-          >
+          <a href="#contact" onClick={downloadResume} className="contact-item">
             <Download size={24} />
             <span>Download Resume</span>
           </a>

@@ -5,7 +5,7 @@ export const portfolioData = {
     tagline: "Building intelligent systems with modern web technologies",
     email: "tejasmt884@gmail.com",
     phone: "+91 7411545570",
-    location: "Bengaluru, India",
+    location: "Bengaluru, KA, India",
     linkedin: "https://linkedin.com/in/tejas26",
     github: "https://github.com/tejas261",
     bio: "Graduate Software Engineer at FYND with expertise in full-stack development, AI agents, and modern web technologies. Passionate about building intelligent systems using LangChain, LangGraph, and cutting-edge AI frameworks.",
@@ -105,7 +105,7 @@ export const portfolioData = {
   education: {
     degree: "Bachelor of Engineering - Computer Science",
     institution: "Don Bosco Institute of Technology (VTU)",
-    duration: "December 2020 - Present",
+    duration: "December 2020 - May 2024",
     cgpa: "8.3",
     location: "Bengaluru, KA",
   },
