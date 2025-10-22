@@ -1,14 +1,14 @@
 from pypdf import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import SentenceTransformerEmbeddings
 from langchain_community.vectorstores import FAISS
 from typing import List
 
 class ResumeProcessor:
     def __init__(self, pdf_path: str, embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"):
         self.pdf_path = pdf_path
-        # Use local Hugging Face sentence-transformers (no API key required)
-        self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model)
+        # Use local sentence-transformers via LangChain community (no API key required)
+        self.embeddings = SentenceTransformerEmbeddings(model_name=embedding_model)
         self.vector_store = None
         
     def extract_text_from_pdf(self) -> str:
@@ -67,7 +67,7 @@ class ResumeProcessor:
     @classmethod
     def load_vector_store(cls, load_path: str, embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2") -> FAISS:
         """Load vector store from disk"""
-        embeddings = HuggingFaceEmbeddings(model_name=embedding_model)
+        embeddings = SentenceTransformerEmbeddings(model_name=embedding_model)
         vector_store = FAISS.load_local(load_path, embeddings, allow_dangerous_deserialization=True)
         print(f"Vector store loaded from {load_path}")
         return vector_store

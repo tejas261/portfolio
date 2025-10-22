@@ -63,7 +63,7 @@ async def download_resume():
 async def chat(request: ChatRequest):
     """Chat with AI assistant about Tejas's portfolio"""
     if not rag_system:
-        raise HTTPException(status_code=503, detail="RAG system not initialized. Please check OPENAI_API_KEY.")
+        raise HTTPException(status_code=503, detail="RAG system not initialized. Please check OPENROUTER_API_KEY.")
     
     try:
         response = rag_system.chat(request.message, request.session_id)

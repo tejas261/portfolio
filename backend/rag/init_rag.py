@@ -20,8 +20,8 @@ class RAGSystem:
             if not os.path.exists(resume_pdf_path):
                 raise FileNotFoundError(f"Resume PDF not found at {resume_pdf_path}")
             print("Processing resume and creating vector store...")
-            # Use OpenAI embeddings (original impl) so index dimension is stable
-            processor = ResumeProcessor(resume_pdf_path, os.environ.get('OPENAI_API_KEY', ''))
+            # Use local sentence-transformer embeddings (no API key required)
+            processor = ResumeProcessor(resume_pdf_path)
             store = processor.process_resume()
             os.makedirs(self.vector_store_path, exist_ok=True)
             processor.save_vector_store(str(self.vector_store_path))
@@ -32,7 +32,7 @@ class RAGSystem:
             print("Loading existing vector store...")
             try:
                 self.vector_store = ResumeProcessor.load_vector_store(
-                    str(self.vector_store_path), os.environ.get('OPENAI_API_KEY', '')
+                    str(self.vector_store_path)
                 )
             except Exception as e:
                 print(f"Error loading vector store: {e}")
