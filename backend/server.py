@@ -38,7 +38,7 @@ except Exception as e:
     rag_system = None
 
 # Create the main app without a prefix
-app = FastAPI()
+app = FastAPI(redirect_slashes=False)
 
 # Middleware to normalize trailing slashes (e.g., /api/chat/ -> /api/chat)
 class StripTrailingSlashMiddleware(BaseHTTPMiddleware):
@@ -51,10 +51,10 @@ class StripTrailingSlashMiddleware(BaseHTTPMiddleware):
 app.add_middleware(StripTrailingSlashMiddleware)
 
 # Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
+api_router = APIRouter(prefix="/api", redirect_slashes=False)
 
-# Health check endpoint
-@api_router.get("/")
+# Health check endpoint (no trailing slash path)
+@api_router.get("")
 async def root():
     return {"message": "Portfolio API is running", "status": "healthy"}
 
@@ -137,6 +137,11 @@ async def debug_openrouter():
     except Exception as e:
         logger.error(f"OpenRouter debug failed: {e}")
         raise HTTPException(status_code=500, detail=f"OpenRouter debug failed: {e}")
+
+# Simple root OK route
+@app.get("/")
+def root_ok():
+    return {"status": "ok"}
 
 # Include the router in the main app
 app.include_router(api_router)
