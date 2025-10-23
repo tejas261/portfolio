@@ -2,6 +2,8 @@ from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 import os
 import logging
 import requests
@@ -37,6 +39,16 @@ except Exception as e:
 
 # Create the main app without a prefix
 app = FastAPI()
+
+# Middleware to normalize trailing slashes (e.g., /api/chat/ -> /api/chat)
+class StripTrailingSlashMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        path = request.scope.get("path", "")
+        if len(path) > 1 and path.endswith("/"):
+            request.scope["path"] = path.rstrip("/")
+        return await call_next(request)
+
+app.add_middleware(StripTrailingSlashMiddleware)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
