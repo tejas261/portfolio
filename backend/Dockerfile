@@ -9,20 +9,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set workdir to the backend folder inside the image
 WORKDIR /app
 
-# Install Python deps first (better caching)
+# Writable caches
+ENV HF_HOME=/app/.cache/huggingface \
+    TRANSFORMERS_CACHE=/app/.cache/hf \
+    SENTENCE_TRANSFORMERS_HOME=/app/.cache/st \
+    XDG_CACHE_HOME=/app/.cache
+RUN mkdir -p /app/.cache/hf /app/.cache/st && chmod -R 777 /app/.cache
+
+# Install deps
 COPY requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir torch==2.4.1
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy backend code
 COPY . .
 
-# Ensure Python finds the backend package paths
+# Pre-fetch the model (correct syntax)
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2'); print('Pre-fetched all-MiniLM-L6-v2 into cache')"
+
 ENV PYTHONPATH=/app
-
-
-# Spaces Docker expects an app listening on port 7860 by default, but we also honor $PORT
 ENV PORT=7860
 EXPOSE 7860
-
-# Run FastAPI with uvicorn
 CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "7860"]
