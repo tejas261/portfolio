@@ -9,8 +9,6 @@ from pathlib import Path
 from datetime import datetime, timezone
 from models.chat import ChatRequest, ChatResponse
 from rag.init_rag import RAGSystem
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
 
 
 # Configure logging first
@@ -127,16 +125,6 @@ async def debug_openrouter():
     except Exception as e:
         logger.error(f"OpenRouter debug failed: {e}")
         raise HTTPException(status_code=500, detail=f"OpenRouter debug failed: {e}")
-
-class StripTrailingSlashMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        # Keep root "/" unchanged; strip a trailing slash from everything else
-        path = request.scope.get("path", "")
-        if len(path) > 1 and path.endswith("/"):
-            request.scope["path"] = path.rstrip("/")
-        return await call_next(request)
-
-app.add_middleware(StripTrailingSlashMiddleware)
 
 # Include the router in the main app
 app.include_router(api_router)
