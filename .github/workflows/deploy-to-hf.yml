@@ -1,0 +1,30 @@
+name: Deploy backend to HF Space
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.email "ci@users.noreply.huggingface.co"
+          git config user.name "hf-space-ci"
+
+      - name: Split backend subtree
+        run: |
+          git subtree split --prefix backend -b backend-subtree
+
+      - name: Push to HF Space (to main branch)
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          REPO_URL="https://huggingface.co/spaces/joyboy26/portfolio-backend"
+          git push "https://user:${HF_TOKEN}@${REPO_URL#https://}" backend-subtree:main --force
