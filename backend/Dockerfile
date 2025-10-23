@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 # Set workdir to the backend folder inside the image
-WORKDIR /app/backend
+WORKDIR /app
 
 # Install Python deps first (better caching)
 COPY requirements.txt ./requirements.txt
@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Ensure Python finds the backend package paths
-ENV PYTHONPATH=/app/backend
+ENV PYTHONPATH=/app
 
 
 # Spaces Docker expects an app listening on port 7860 by default, but we also honor $PORT
