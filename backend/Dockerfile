@@ -24,6 +24,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend code
 COPY . .
 
+RUN mkdir -p /app/rag/vector_store && chmod -R 777 /app/rag/vector_store
+
 # Pre-fetch the model (correct syntax)
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2'); print('Pre-fetched all-MiniLM-L6-v2 into cache')"
 
