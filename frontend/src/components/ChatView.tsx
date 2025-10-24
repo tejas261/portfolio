@@ -121,13 +121,13 @@ const ChatView: React.FC<Props> = ({ sessionId }) => {
           </div>
         </div>
       </div>
-
+      {/* 
       {apiError && (
         <div className="api-error-banner">
           <AlertCircle size={16} />
           <span>AI backend not configured. Please add an API key.</span>
         </div>
-      )}
+      )} */}
 
       <div className="chat-messages h-80">
         {messages.map((message) => (
