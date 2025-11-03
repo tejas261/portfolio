@@ -1,0 +1,83 @@
+# Personal profile facts for RAG (edit these with your real info)
+# Notes:
+# - Keep it simple, short, and factual. This file is parsed and flattened into searchable facts.
+# - You can add or remove fields freely. Nested objects and arrays are supported.
+# - After editing, call POST /api/rag/reindex to rebuild the vector store.
+
+name: "Tejas M"
+current_role: "Full‑stack Engineer"
+tagline: "Builds pragmatic, fast, and reliable products end‑to‑end."
+
+locations:
+  - city: "Bengaluru"
+    country: "India"
+
+education:
+  - level: "School"
+    institution: "The New Cambridge High School"
+    board: "State"
+    years: "2008–2018"
+    percentage: "90%"
+    place: "Vijayanagar, Bengaluru"
+  - level: "Pre-University"
+    institution: "KLE's S Nijalingappa PU College"
+    board: "State"
+    years: "2018–2020"
+    percentage: "88.5%"
+    place: "Rajajinagar, Bengaluru"
+  - level: "Bachelor's"
+    institution: "Don Bosco Institute of Technology"
+    degree: "B.E. in Computer Science and Engineering"
+    years: "2020–2024"
+    cgpa: "8.3"
+    place: "Bengaluru"
+    
+work_experience:
+  - company: "Fynd"
+    role: "Graduate SDE"
+    start: "2024-10"
+    end: "present"
+    summary: "Full-stack development across backend (FastAPI, services, infra) and frontend (React)."
+    highlights:
+      - "Designed and implemented end-to-end features with measurable impact."
+      - "Improved developer workflows and performance in critical paths."
+  - company: "Fynd"
+    role: "Full Stack Intern"
+    start: "2024-07"
+    end: "2024-09"
+    summary: "Frontend development across (Next.js, Shadcn UI, Tailwind CSS)."
+    highlights:
+      - "Implemented responsive front-end components using Next.js, Shadcn UI and Tailwind CSS"
+      - "Spearheaded UI/UX overhaul by translating Figma designs with pixel-perfect accuracy"
+      - "Collaborated with QA and DevOps teams to integrate AI test-generation modules"
+
+skills:
+  languages: ["Python", "TypeScript", "JavaScript"]
+  frameworks: ["FastAPI", "Next.js", "LangChain"]
+  databases: ["PostgreSQL", "MongoDB"]
+  tools: ["Docker", "Git", "GitHub", "FAISS"]
+
+interests:
+  - "Distributed systems"
+  - "Developer tools and experience"
+  - "RAG and LLM agents"
+  - "System design"
+  - "AI agents and workflows"
+
+hobbies:
+  - "Badminton"
+  - "Photography"
+  - "Chess"
+  - "Cricket"
+  - "Fitness"
+
+strengths:
+  - "Rapid prototyping and iteration"
+  - "End‑to‑end ownership"
+  - "Clear, concise documentation"
+
+links:
+  github: "https://github.com/tejas261"
+  linkedin: "https://linkedin.com/in/tejas26"
+
+bio_short: "Full-stack engineer who builds end-to-end features and enjoys sports, travel, and learning new tech."

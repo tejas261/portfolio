@@ -1,0 +1,23 @@
+# Chronological timeline of key events (education, work, milestones).
+# Add entries and reindex via POST /api/rag/reindex.
+
+- date: "2016-06"
+  event: "Started PU at <Your PU College>"
+  location: "City, State"
+
+- date: "2018-05"
+  event: "Completed PU"
+  notes: "Board: <State/CBSE/ICSE>"
+
+- date: "2018-08"
+  event: "Started B.Tech in Computer Science at <Your University>"
+  location: "City, State"
+
+- date: "2022-06"
+  event: "Graduated B.Tech (CSE) from <Your University>"
+
+- date: "2023-01"
+  event: "Joined Fynd as Full‑stack Engineer"
+
+- date: "2024-10"
+  event: "Built personal RAG agent for portfolio"

@@ -1,0 +1,23 @@
+# High-signal Q&A pairs. One pair per entry.
+# Tip: Keep answers short, factual, and current. Update anytime and call POST /api/rag/reindex.
+
+- q: "What are Tejas’s hobbies?"
+  a: "Badminton, cricket, fitness, photography, chess, and traveling."
+
+- q: "Where did Tejas do PU?"
+  a: "<Your PU College> (2016–2018)."
+
+- q: "Where did Tejas complete his bachelor's?"
+  a: "<Your University>, B.Tech in Computer Science (2018–2022)."
+
+- q: "What are Tejas’s interests?"
+  a: "Distributed systems, DevTools, RAG and LLM agents, system design, and AI agents and workflows."
+
+- q: "What does Tejas do at Fynd?"
+  a: "Full‑stack engineering across backend (FastAPI, services, infra) and frontend (React)."
+
+- q: "What are Tejas’s strengths?"
+  a: "Rapid prototyping, end‑to‑end ownership, and concise documentation."
+
+- q: "How can I contact Tejas?"
+  a: "GitHub: https://github.com/tejas261, LinkedIn: <your LinkedIn URL>, Website: <your website>."

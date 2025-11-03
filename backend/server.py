@@ -30,8 +30,8 @@ try:
     # Override model via env if desired
     model_name = os.environ.get('OPENROUTER_MODEL', 'openai/gpt-oss-20b:free')
     rag_system = RAGSystem(openrouter_api_key=openrouter_key, model_name=model_name)
-    resume_path = ROOT_DIR / 'data' / 'resume.pdf'
-    rag_system.initialize(str(resume_path))
+    data_dir = ROOT_DIR / 'data'
+    rag_system.initialize(str(data_dir))
     logging.info(f"RAG system initialized successfully with model: {model_name}")
 except Exception as e:
     logging.error(f"Failed to initialize RAG system: {e}")
@@ -137,6 +137,31 @@ async def debug_openrouter():
     except Exception as e:
         logger.error(f"OpenRouter debug failed: {e}")
         raise HTTPException(status_code=500, detail=f"OpenRouter debug failed: {e}")
+
+# RAG management endpoints
+@api_router.post("/rag/reindex")
+async def rag_reindex():
+    """Force reindex of the data directory."""
+    if not rag_system:
+        raise HTTPException(status_code=503, detail="RAG system not initialized.")
+    try:
+        data_dir = ROOT_DIR / 'data'
+        rag_system.reindex(str(data_dir))
+        return {"status": "reindexed", "summary": rag_system.get_sources_summary()}
+    except Exception as e:
+        logger.error(f"Error reindexing: {e}")
+        raise HTTPException(status_code=500, detail=f"Error reindexing: {str(e)}")
+
+@api_router.get("/rag/sources")
+async def rag_sources():
+    """Summary of indexed sources"""
+    if not rag_system:
+        raise HTTPException(status_code=503, detail="RAG system not initialized.")
+    try:
+        return rag_system.get_sources_summary()
+    except Exception as e:
+        logger.error(f"Error getting sources: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting sources: {str(e)}")
 
 # Simple root OK route
 @app.get("/")
