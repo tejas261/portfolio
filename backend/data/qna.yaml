@@ -33,3 +33,30 @@
 
 - q: "What genres are you into?"
   a: "Suspense, thriller, crime, supernatural, action, time travel, space, and mystery."
+
+- q: "Anything else you're building right now?"
+  a: "A full-fledged AI portfolio manager as a personal project—but the priority is ratl.ai."
+
+- q: "What are you working on currently?"
+  a: "I’m working on ratl.ai at Fynd—an autonomous agentic SaaS app that automates the entire software testing process."
+
+- q: "Can you share more details about your current work?"
+  a: "Main focus is ratl.ai at Fynd—best place to explore is https://ratl.ai for the full picture."
+
+# Synonyms to bias retrieval toward ratl.ai for “current work” style questions
+- q: "What are you doing these days?"
+  a: "I’m building ratl.ai at Fynd—an autonomous agentic SaaS app that automates the entire software testing process."
+
+- q: "What are you up to lately?"
+  a: "Focusing on ratl.ai at Fynd, automating the entire software testing process with an autonomous agentic SaaS app."
+
+- q: "What's your current focus?"
+  a: "ratl.ai at Fynd, an autonomous agentic SaaS that automates software testing end‑to‑end."
+
+# Disambiguation to prevent mixing with side project
+- q: "Is ratl.ai the AI portfolio manager?"
+  a: "No—ratl.ai at Fynd is an autonomous agentic SaaS for software testing; the AI portfolio manager is a separate personal side project."
+
+# Side project mention only when explicitly asked
+- q: "Do you have any side projects?"
+  a: "Yes—an AI portfolio manager I tinker with in my free time."

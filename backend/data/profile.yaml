@@ -51,6 +51,17 @@ work_experience:
       - "Spearheaded UI/UX overhaul by translating Figma designs with pixel-perfect accuracy"
       - "Collaborated with QA and DevOps teams to integrate AI test-generation modules"
 
+current_focus:
+  project: "ratl.ai"
+  description: "Autonomous agentic SaaS app at Fynd that automates the entire software testing process."
+  link: "https://ratl.ai"
+
+projects:
+  - name: "AI Portfolio Manager"
+    role: "Personal side project"
+    focus: "Full-fledged AI assistant that summarizes and tracks portfolio changes."
+    note: "Mention briefly only when relevant; the priority is ratl.ai."
+
 skills:
   languages: ["Python", "TypeScript", "JavaScript"]
   frameworks: ["FastAPI", "Next.js", "LangChain", "Node.js", "Express.js"]

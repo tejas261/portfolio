@@ -155,6 +155,7 @@ class RAGAgent:
             "Ground your answer in the provided Context when relevant; if the answer is not in the Context, acknowledge it briefly in a natural way (e.g., \"I'm not sure\", \"I don't have an idea about that yet\", or \"I don't have that info handy right now\"). Vary the wording across turns. "
             "When mentioning academic scores/percentages/CGPA, avoid bare numbers—prefer phrasing like \"I scored 88.5% in PU\" or \"I finished with an 8.3 CGPA.\" "
             "Canonical profile: You are a full‑stack engineer (frontend and backend). When discussing your work at Fynd, explicitly describe full‑stack responsibilities; never imply you handled only frontend. "
+            "For questions about what you're working on now, treat your current focus (ratl.ai) as canonical—even if it isn't present in the retrieved Context—answer with that first. Mention the AI portfolio manager only if explicitly asked or if the user asks for side projects, keep it brief, and point people to https://ratl.ai for details. "
             "Playful entertainment note: you enjoy anime and good TV dramas; mention this casually and only when relevant. "
             "Do not repeat it across messages. "
             "If entertainment_mentioned_in_session is true, avoid bringing it up again unless the user asks directly. "
@@ -253,6 +254,7 @@ class RAGAgent:
             obj = self._parse_structured_response(content)
             answer = obj.get("answer")
             text = self._clean_text(answer) if isinstance(answer, str) else self._to_display_text(content)
+            text = self._apply_invariants(question, text)
             # Update session entertainment flag if mentioned in this answer
             try:
                 if not ent_flag:
@@ -320,6 +322,58 @@ class RAGAgent:
                     pass
         # Fall back to cleaned plain text
         return self._clean_text(s)
+
+    def _apply_invariants(self, question: str, text: str) -> str:
+        """Post-process model output to enforce canonical facts and phrasing."""
+        if not text:
+            return text
+        try:
+            ql = (question or "").lower()
+            asks_current = any(
+                kw in ql
+                for kw in [
+                    "what are you doing these days",
+                    "what are you working on",
+                    "currently working",
+                    "these days",
+                    "what are you up to",
+                ]
+            )
+            mentions_side = any(
+                kw in ql
+                for kw in ["side project", "side projects", "secondary project", "hustle", "hustles", "side-project", "secondary projects"]
+            )
+
+            # Normalize "ratl ai" forms to "ratl.ai"
+            norm = re.sub(r"\bratl\s*\.?\s*ai\b", "ratl.ai", text, flags=re.IGNORECASE)
+
+            if asks_current and not mentions_side:
+                # Strip any sentence that mixes in the portfolio manager so the answer stays focused on ratl.ai
+                norm = re.sub(r"(?i)([^.?!]*\bportfolio manager\b[^.?!]*[.?!])", " ", norm)
+                norm = re.sub(r"\s{2,}", " ", norm).strip()
+
+                # Ensure ratl.ai is explicitly mentioned if missing after cleanup
+                if re.search(r"ratl\.ai", norm, flags=re.IGNORECASE) is None:
+                    lead = "I'm working on ratl.ai at Fynd—an autonomous agentic SaaS app that automates the entire software testing process."
+                    if norm and not norm.endswith("."):
+                        norm = norm + "."
+                    norm = f"{lead} {norm}".strip() if norm else lead
+
+            # Fix incorrect phrasing like "AI portfolio manager at ratl.ai"
+            norm = re.sub(
+                r"\b(ai\s+)?portfolio\s+manager\s+at\s*ratl\.ai\b",
+                "AI portfolio manager (personal side project)",
+                norm,
+                flags=re.IGNORECASE,
+            )
+
+            # Remove stray "the ratl.ai" phrasing that can appear after replacements
+            norm = re.sub(r"\bthe\s+ratl\.ai\b", "ratl.ai", norm, flags=re.IGNORECASE)
+
+            return self._clean_text(norm)
+        except Exception:
+            # On any error, return the original text cleaned
+            return self._clean_text(text)
 
     def chat(self, message: str, session_id: str) -> str:
         """Main chat method without langgraph: retrieve -> generate"""
