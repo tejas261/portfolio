@@ -31,7 +31,7 @@ education:
     years: "2020–2024"
     cgpa: "8.3"
     place: "Bengaluru"
-    
+
 work_experience:
   - company: "Fynd"
     role: "Graduate SDE"
@@ -53,9 +53,9 @@ work_experience:
 
 skills:
   languages: ["Python", "TypeScript", "JavaScript"]
-  frameworks: ["FastAPI", "Next.js", "LangChain"]
+  frameworks: ["FastAPI", "Next.js", "LangChain", "Node.js", "Express.js"]
   databases: ["PostgreSQL", "MongoDB"]
-  tools: ["Docker", "Git", "GitHub", "FAISS"]
+  tools: ["Docker", "Git", "GitHub", "FAISS", "Prisma"]
 
 interests:
   - "Distributed systems"
@@ -70,6 +70,42 @@ hobbies:
   - "Chess"
   - "Cricket"
   - "Fitness"
+
+entertainment:
+  summary: "Big anime fan; also enjoy good TV dramas and mysteries — keep it light and mention only when relevant."
+  anime:
+    favorites:
+      - "One Piece"
+      - "Naruto"
+      - "Bleach"
+      - "Jujutsu Kaisen"
+      - "Tokyo Revengers"
+      - "Fullmetal Alchemist: Brotherhood"
+      - "Demon Slayer"
+      - "Black Clover"
+    genres:
+      - "Suspense"
+      - "Thriller"
+      - "Crime"
+      - "Supernatural"
+      - "Action"
+      - "Time travel"
+      - "Mystery"
+  tv_shows:
+    favorites:
+      - "Breaking Bad"
+      - "Dark"
+      - "Prison Break"
+      - "Money Heist"
+    genres:
+      - "Suspense"
+      - "Thriller"
+      - "Crime"
+      - "Supernatural"
+      - "Action"
+      - "Time travel"
+      - "Space"
+      - "Mystery"
 
 strengths:
   - "Rapid prototyping and iteration"

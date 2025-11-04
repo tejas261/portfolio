@@ -42,6 +42,7 @@ class RAGAgent:
         except Exception as e:
             print(f"[RAG] Failed to precompute chunk embeddings: {e}")
         self.session_memory: Dict[str, List] = {}
+        self.session_flags: Dict[str, Dict[str, Any]] = {}
 
     def retrieve_context(self, state: AgentState) -> AgentState:
         """Retrieve relevant context using sentence-transformers (cosine sim)."""
@@ -142,6 +143,8 @@ class RAGAgent:
         # Last user question
         last_user = next((m for m in reversed(messages) if isinstance(m, HumanMessage) or getattr(m, 'role', None) == 'user'), None)
         question = last_user.content if last_user and hasattr(last_user, 'content') else ""
+        session_id = state.get("session_id", "")
+        ent_flag = bool(self.session_flags.get(session_id, {}).get("entertainment_mentioned"))
 
         # System instructions and schema
         schema = self._assistant_json_schema()
@@ -149,17 +152,24 @@ class RAGAgent:
             "You are Tejas M. Reply as a friendly human in first person. "
             "Keep answers short (2–3 sentences) unless the user explicitly asks for more. "
             "Be confident and conversational; vary phrasing so it never feels templated. "
-            "Ground your answer in the provided Context when relevant; if the answer is not in the Context, say \"I don't have that info yet\" instead of guessing. "
+            "Ground your answer in the provided Context when relevant; if the answer is not in the Context, acknowledge it briefly in a natural way (e.g., \"I'm not sure\", \"I don't have an idea about that yet\", or \"I don't have that info handy right now\"). Vary the wording across turns. "
+            "When mentioning academic scores/percentages/CGPA, avoid bare numbers—prefer phrasing like \"I scored 88.5% in PU\" or \"I finished with an 8.3 CGPA.\" "
             "Canonical profile: You are a full‑stack engineer (frontend and backend). When discussing your work at Fynd, explicitly describe full‑stack responsibilities; never imply you handled only frontend. "
-            "Personal touch: When the user asks about you, add one short, natural sentence (at most one) mentioning you enjoy sports, traveling, and learning about tech if it fits. "
+            "Playful entertainment note: you enjoy anime and good TV dramas; mention this casually and only when relevant. "
+            "Do not repeat it across messages. "
+            "If entertainment_mentioned_in_session is true, avoid bringing it up again unless the user asks directly. "
+            f"entertainment_mentioned_in_session={str(ent_flag).lower()}. "
             "You MUST output a single JSON object that conforms to the provided JSON Schema. Do not include any text before or after the JSON."
         )
         user_prompt = (
-            "Follow the instructions and return a JSON object only.\n\n"
+            "Follow the instructions and return a JSON object only.\n"
+            f"entertainment_mentioned_in_session: {str(ent_flag).lower()}\n\n"
             f"Context:\n{context}\n\n"
             f"Question: {question}\n\n"
             "JSON object must include at least the 'answer' field in plain text (no markdown). "
-            "If the information is missing in the context, set missing_info=true and set answer to \"I don't have that info yet\"."
+            "If the information is missing in the context, set missing_info=true and set answer to a short, engaging acknowledgement such as "
+            "\"I'm not sure\", \"I don't have an idea about that yet\", or \"I don't have that info handy right now\" (vary phrasing across turns). "
+            "If academic scores/percentages/CGPA are included, avoid bare numbers and phrase them naturally (e.g., \"I scored 88.5% in PU\", \"I finished with an 8.3 CGPA\")."
         )
 
         headers = {
@@ -178,7 +188,7 @@ class RAGAgent:
         fallback_env = os.environ.get("OPENROUTER_FALLBACK_MODELS", "")
         fallback_models = [m.strip() for m in fallback_env.split(",") if m.strip()]
         candidates: List[str] = []
-        for m in [self.model_name, *fallback_models, "deepseek/deepseek-chat:free"]:
+        for m in [self.model_name, *fallback_models, "openai/gpt-oss-20b:free"]:
             if m and m not in candidates:
                 candidates.append(m)
 
@@ -187,9 +197,9 @@ class RAGAgent:
         for model in candidates:
             payload = {
                 "model": model,
-                "temperature": 0.2,
+                "temperature": 0.9,
                 "top_p": 0.95,
-                "max_tokens": 380,
+                "max_tokens": 1000,
                 "frequency_penalty": 0.25,
                 "presence_penalty": 0.1,
                 "messages": [
@@ -243,6 +253,19 @@ class RAGAgent:
             obj = self._parse_structured_response(content)
             answer = obj.get("answer")
             text = self._clean_text(answer) if isinstance(answer, str) else self._to_display_text(content)
+            # Update session entertainment flag if mentioned in this answer
+            try:
+                if not ent_flag:
+                    low = (text or "").lower()
+                    if any(k in low for k in [
+                        "anime",
+                        "one piece", "naruto", "bleach", "jujutsu kaisen", "tokyo revengers",
+                        "fullmetal alchemist", "demon slayer", "black clover",
+                        "breaking bad", "dark", "prison break", "money heist"
+                    ]):
+                        self.session_flags.setdefault(session_id, {})["entertainment_mentioned"] = True
+            except Exception:
+                pass
             state["messages"].append(AIMessage(content=text))
             return state
 
@@ -303,6 +326,7 @@ class RAGAgent:
         # Get or create session history
         if session_id not in self.session_memory:
             self.session_memory[session_id] = []
+        self.session_flags.setdefault(session_id, {"entertainment_mentioned": False})
 
         # Add user message to history
         self.session_memory[session_id].append(HumanMessage(content=message))

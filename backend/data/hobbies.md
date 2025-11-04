@@ -5,7 +5,7 @@ tags: ["personal", "hobbies"]
 
 I enjoy:
 
-- Badminton (regular local games and friendly competitions)
+- Badminton & Cricket (regular local games and friendly competitions)
 - Photography (street and travel; I like capturing candid moments)
 - Chess (casual play, learning openings and endgames)
 - Traveling (short trips, exploring food and culture)

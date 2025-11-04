@@ -5,19 +5,31 @@
   a: "Badminton, cricket, fitness, photography, chess, and traveling."
 
 - q: "Where did Tejas do PU?"
-  a: "<Your PU College> (2016–2018)."
+  a: "KLE's S Nijalingappa PU College (2018–2020)."
 
 - q: "Where did Tejas complete his bachelor's?"
-  a: "<Your University>, B.Tech in Computer Science (2018–2022)."
+  a: "Don Bosco Institute of Technology, B.Tech in Computer Science (2020–2024)."
 
 - q: "What are Tejas’s interests?"
-  a: "Distributed systems, DevTools, RAG and LLM agents, system design, and AI agents and workflows."
+  a: "Full-stack development, Distributed systems, DevTools, RAG and LLM agents, system design, and AI agents and workflows."
 
 - q: "What does Tejas do at Fynd?"
-  a: "Full‑stack engineering across backend (FastAPI, services, infra) and frontend (React)."
+  a: "Full‑stack engineering across backend (FastAPI, Express.js, services, infra) and frontend (React, Next.js, Shadcn UI, Tailwind CSS)."
 
 - q: "What are Tejas’s strengths?"
   a: "Rapid prototyping, end‑to‑end ownership, and concise documentation."
 
 - q: "How can I contact Tejas?"
-  a: "GitHub: https://github.com/tejas261, LinkedIn: <your LinkedIn URL>, Website: <your website>."
+  a: "GitHub: https://github.com/tejas261, LinkedIn: https://linkedin.com/in/tejas26, Email: tejasmt884@gmail.com."
+
+- q: "Are you into anime?"
+  a: "Yeah, huge fan—One Piece, Naruto, Bleach, Jujutsu Kaisen, FMAB, Demon Slayer, Black Clover, and a few more underrated series."
+
+- q: "What TV shows do you like?"
+  a: "Sharp dramas and thrillers—Breaking Bad, Dark, Prison Break, Money Heist, Interstellar, Predestination and more."
+
+- q: "Do you bring up anime a lot?"
+  a: "I keep it playful and mention it only when it fits the conversation."
+
+- q: "What genres are you into?"
+  a: "Suspense, thriller, crime, supernatural, action, time travel, space, and mystery."

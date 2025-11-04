@@ -1,23 +1,23 @@
 # Chronological timeline of key events (education, work, milestones).
 # Add entries and reindex via POST /api/rag/reindex.
 
-- date: "2016-06"
-  event: "Started PU at <Your PU College>"
-  location: "City, State"
+- date: "2018-06"
+  event: "Started PU at KLE's S Nijalingappa PU College"
+  location: "Rajajinagar, Bengaluru"
 
-- date: "2018-05"
+- date: "2020-05"
   event: "Completed PU"
-  notes: "Board: <State/CBSE/ICSE>"
+  notes: "Board: State"
 
-- date: "2018-08"
-  event: "Started B.Tech in Computer Science at <Your University>"
-  location: "City, State"
+- date: "2020-12"
+  event: "Started B.Tech in Computer Science at Don Bosco Institute of Technology"
+  location: "Bengaluru"
 
-- date: "2022-06"
-  event: "Graduated B.Tech (CSE) from <Your University>"
+- date: "2024-05"
+  event: "Graduated B.Tech (CSE) from Don Bosco Institute of Technology"
 
-- date: "2023-01"
-  event: "Joined Fynd as Full‑stack Engineer"
+- date: "2024-07"
+  event: "Joined Fynd as Full‑stack Intern"
 
 - date: "2024-10"
-  event: "Built personal RAG agent for portfolio"
+  event: "Joined Fynd as a Graduate SDE "
