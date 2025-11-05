@@ -82,7 +82,7 @@ def _extract_client_ip(req: Request) -> str | None:
     return req.client.host if req.client else None
 
 def _geo_from_ip(ip: str) -> dict | None:
-    """Best-effort geolocation for an IP using ipapi.co by default, or ipinfo if token provided.
+    """Best-effort geolocation for an IP using ipapi.co by default, ipinfo (token), and ipwho.is as fallback.
     Returns dict with keys: country, region, city, lat, lon, timezone, asn, org, isp (where available).
     """
     if not ip or _is_private_ip(ip):
@@ -138,6 +138,33 @@ def _geo_from_ip(ip: str) -> dict | None:
                 pass
             _GEO_CACHE[ip] = res
             return res
+        # Fallback: ipwho.is
+        url = f"https://ipwho.is/{ip}"
+        r = requests.get(url, timeout=5)
+        if r.status_code == 200:
+            d = r.json() or {}
+            if d.get('success') is True:
+                conn = d.get('connection') or {}
+                res = {
+                    'country': d.get('country'),
+                    'region': d.get('region'),
+                    'city': d.get('city'),
+                    'lat': d.get('latitude'),
+                    'lon': d.get('longitude'),
+                    'timezone': (d.get('timezone') or {}).get('id') if isinstance(d.get('timezone'), dict) else d.get('timezone'),
+                    'asn': conn.get('asn'),
+                    'org': conn.get('org'),
+                    'isp': conn.get('isp') or conn.get('org'),
+                }
+                try:
+                    res['lat'] = float(res['lat']) if res['lat'] is not None else None
+                    res['lon'] = float(res['lon']) if res['lon'] is not None else None
+                except Exception:
+                    pass
+                _GEO_CACHE[ip] = res
+                return res
+            else:
+                logger.warning(f"ipwho.is lookup unsuccessful for {ip}: {d}")
     except Exception as e:
         logger.warning(f"GeoIP lookup failed for {ip}: {e}")
     return None
@@ -315,6 +342,15 @@ async def get_chat_history(session_id: str):
     except Exception as e:
         logger.error(f"Error getting chat history: {e}")
         raise HTTPException(status_code=500, detail=f"Error getting history: {str(e)}")
+
+@api_router.get("/debug/geo")
+async def debug_geo(ip: str):
+    """Debug endpoint to test server-side geolocation."""
+    try:
+        res = _geo_from_ip(ip)
+        return {"ip": ip, "geo": res}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Geo debug failed: {e}")
 
 @api_router.get("/debug/openrouter")
 async def debug_openrouter():
