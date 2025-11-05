@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from models.chat import ChatRequest, ChatResponse
 from rag.init_rag import RAGSystem
 from db import init_db, upsert_session, insert_message, fetch_analytics, fetch_analytics_sessions
-from ipaddress import ip_address, ip_network
+from ipaddress import ip_address
 
 
 # Configure logging first
@@ -45,6 +45,41 @@ def _is_private_ip(ip: str) -> bool:
     except Exception:
         return True
 
+
+def _parse_xff(xff: str) -> list[str]:
+    parts = [p.strip() for p in (xff or "").split(",")]
+    ips: list[str] = []
+    for p in parts:
+        try:
+            ip_address(p)
+            ips.append(p)
+        except Exception:
+            continue
+    return ips
+
+def _extract_client_ip(req: Request) -> str | None:
+    """Extract the most likely real client IP from common proxy/CDN headers.
+    Priority order: CF-Connecting-IP, True-Client-IP, X-Real-IP, Fly-Client-IP, first public in X-Forwarded-For, fallback to req.client.host
+    """
+    h = req.headers
+    for key in ["cf-connecting-ip", "true-client-ip", "x-real-ip", "fly-client-ip"]:
+        val = h.get(key)
+        if val:
+            return val
+    # X-Forwarded-For may contain multiple IPs. Take the first public one.
+    xff = h.get("x-forwarded-for")
+    if xff:
+        for ip in _parse_xff(xff):
+            try:
+                if not _is_private_ip(ip):
+                    return ip
+            except Exception:
+                continue
+        # if none public, fall back to first
+        ips = _parse_xff(xff)
+        if ips:
+            return ips[0]
+    return req.client.host if req.client else None
 
 def _geo_from_ip(ip: str) -> dict | None:
     """Best-effort geolocation for an IP using ipapi.co by default, or ipinfo if token provided.
@@ -167,7 +202,7 @@ async def chat(request: ChatRequest, raw_request: Request):
 
     # Upsert session row with metadata
     try:
-        client_host = raw_request.client.host if raw_request.client else None
+        client_host = _extract_client_ip(raw_request)
         # Geolocation headers (may be provided by some CDNs/proxies)
         geo_country = raw_request.headers.get("cf-ipcountry") or raw_request.headers.get("x-country")
         # Extended IP and network metadata placeholder — fill if your edge sets these headers
