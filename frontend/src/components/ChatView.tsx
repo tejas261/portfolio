@@ -13,9 +13,9 @@ type Message = {
   timestamp: Date;
 };
 
-type Props = { sessionId: string };
+type Props = { sessionId: string; visitorId?: string };
 
-const ChatView: React.FC<Props> = ({ sessionId }) => {
+const ChatView: React.FC<Props> = ({ sessionId, visitorId }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -62,6 +62,15 @@ const ChatView: React.FC<Props> = ({ sessionId }) => {
           {
             message: userInput,
             session_id: sessionId,
+            meta: {
+              visitor_id: visitorId,
+              page_url: window.location.href,
+              referrer: document.referrer || undefined,
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              locale: navigator.language,
+              user_agent: navigator.userAgent,
+              dnt: navigator.doNotTrack === "1",
+            },
           },
           {
             timeout: 30000, // 30 second timeout

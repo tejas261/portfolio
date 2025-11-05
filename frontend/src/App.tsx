@@ -5,11 +5,25 @@ import ChatView from "./components/ChatView";
 import { User, MessageSquare } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 
+const getOrCreateVisitorId = (): string => {
+  const key = "visitor_id";
+  try {
+    const existing = localStorage.getItem(key);
+    if (existing) return existing;
+    const id = uuidv4();
+    localStorage.setItem(key, id);
+    return id;
+  } catch {
+    return uuidv4();
+  }
+};
+
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<"portfolio" | "chat">(
     "portfolio"
   );
   const sessionId = useMemo(() => uuidv4(), []);
+  const visitorId = useMemo(() => getOrCreateVisitorId(), []);
 
   return (
     <div className="App">
@@ -38,7 +52,7 @@ const App: React.FC = () => {
           <PortfolioView />
         </div>
         <div style={{ display: activeView === "chat" ? "block" : "none" }}>
-          <ChatView sessionId={sessionId} />
+          <ChatView sessionId={sessionId} visitorId={visitorId} />
         </div>
       </main>
     </div>

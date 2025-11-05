@@ -1,4 +1,5 @@
 from typing import Dict, Any, List
+from pathlib import Path
 from langchain_community.vectorstores import FAISS
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim
@@ -8,6 +9,7 @@ import json
 import re
 from langchain.schema import HumanMessage, AIMessage
 from typing_extensions import TypedDict
+from db import fetch_history
 
 
 class AgentState(TypedDict):
@@ -43,31 +45,81 @@ class RAGAgent:
             print(f"[RAG] Failed to precompute chunk embeddings: {e}")
         self.session_memory: Dict[str, List] = {}
         self.session_flags: Dict[str, Dict[str, Any]] = {}
+        # Lightweight diagnostics per session (retrieved sources, missing flags, etc.)
+        self.session_diagnostics: Dict[str, Dict[str, Any]] = {}
 
     def retrieve_context(self, state: AgentState) -> AgentState:
-        """Retrieve relevant context using sentence-transformers (cosine sim)."""
-        # Get the last user message
-        last_message = state["messages"][-1]
-        query = last_message.content if hasattr(last_message, 'content') else str(last_message)
+        """Retrieve relevant context using sentence-transformers (cosine sim).
+        Uses recent conversation to build a better retrieval query so follow-ups like
+        "From where?" are grounded in the prior turn.
+        """
+        messages = state["messages"]
+        session_id = state.get("session_id", "")
+        last_user = next((m for m in reversed(messages) if isinstance(m, HumanMessage)), None)
+        query = last_user.content if last_user else ""
+
+        # Build a conversation-aware query for retrieval
+        try:
+            # Gather a short window of recent messages (up to last 4)
+            recent = messages[-4:]
+            lines: List[str] = []
+            for m in recent:
+                if isinstance(m, HumanMessage):
+                    lines.append(f"User: {m.content}")
+                elif isinstance(m, AIMessage):
+                    lines.append(f"Assistant: {m.content}")
+            convo = "\n".join(lines)
+
+            # Heuristic: if this looks like a short follow-up, include recent convo
+            q_low = (query or "").strip().lower()
+            is_followup = (len(q_low.split()) <= 4) or any(k in q_low for k in [
+                "where", "when", "which", "who", "what", "how", "from where"
+            ])
+            retrieval_query = f"{convo}\n\nQuestion: {query}" if is_followup else query
+        except Exception:
+            retrieval_query = query
 
         context = ""
+        retrieved_sources: List[str] = []
         try:
             if self.chunks and self.chunk_embeddings is not None:
-                query_embedding = self.st_model.encode(query, convert_to_tensor=True)
+                query_embedding = self.st_model.encode(retrieval_query, convert_to_tensor=True)
                 scores = cos_sim(query_embedding, self.chunk_embeddings)
                 # scores shape: (1, N)
                 k = min(3, len(self.chunks))
                 top_idx = scores.squeeze(0).argsort(descending=True)[:k]
-                retrieved = [self.chunks[int(i)] for i in top_idx]
-                context = "\n\n".join(retrieved)
+                selected = [self.chunks[int(i)] for i in top_idx]
+                # Parse filenames from the header line 'Source: <filename> (<typ>)' added in init_rag
+                for chunk in selected:
+                    first_line = (chunk or "").splitlines()[0] if chunk else ""
+                    m = re.match(r"^Source:\s*([^\(\n]+)\s*\(", first_line)
+                    if m:
+                        retrieved_sources.append(m.group(1).strip())
+                context = "\n\n".join(selected)
             else:
                 # Fallback to FAISS search if precomputed chunks missing
-                docs = self.vector_store.similarity_search(query, k=3)
+                docs = self.vector_store.similarity_search(retrieval_query, k=3)
+                for doc in docs:
+                    meta = getattr(doc, "metadata", {}) or {}
+                    fname = meta.get("filename") or meta.get("source") or "unknown"
+                    # Normalize path to basename
+                    try:
+                        fname = Path(fname).name
+                    except Exception:
+                        pass
+                    retrieved_sources.append(str(fname))
                 context = "\n\n".join([doc.page_content for doc in docs])
         except Exception as e:
             print(f"[RAG] retrieve_context error, falling back to empty context: {e}")
 
         state["context"] = context
+        # Stash diagnostics for this session
+        try:
+            self.session_diagnostics.setdefault(session_id, {})
+            self.session_diagnostics[session_id]["retrieved_sources"] = retrieved_sources
+            self.session_diagnostics[session_id]["context_chars"] = len(context or "")
+        except Exception:
+            pass
         return state
 
     def _format_prompt(self, system_prompt: str, messages: List[Any]) -> str:
@@ -162,9 +214,20 @@ class RAGAgent:
             f"entertainment_mentioned_in_session={str(ent_flag).lower()}. "
             "You MUST output a single JSON object that conforms to the provided JSON Schema. Do not include any text before or after the JSON."
         )
+        # Build a short, recent conversation transcript to help resolve anaphora
+        recent = messages[-4:]
+        convo_lines: List[str] = []
+        for m in recent:
+            if isinstance(m, HumanMessage):
+                convo_lines.append(f"User: {m.content}")
+            elif isinstance(m, AIMessage):
+                convo_lines.append(f"Assistant: {m.content}")
+        convo_text = "\n".join(convo_lines)
+
         user_prompt = (
             "Follow the instructions and return a JSON object only.\n"
             f"entertainment_mentioned_in_session: {str(ent_flag).lower()}\n\n"
+            f"Conversation (recent):\n{convo_text}\n\n"
             f"Context:\n{context}\n\n"
             f"Question: {question}\n\n"
             "JSON object must include at least the 'answer' field in plain text (no markdown). "
@@ -255,6 +318,14 @@ class RAGAgent:
             answer = obj.get("answer")
             text = self._clean_text(answer) if isinstance(answer, str) else self._to_display_text(content)
             text = self._apply_invariants(question, text)
+            # Update diagnostics with missing_info if provided
+            try:
+                session_id = state.get("session_id", "")
+                self.session_diagnostics.setdefault(session_id, {})
+                if isinstance(obj, dict) and "missing_info" in obj:
+                    self.session_diagnostics[session_id]["missing_info"] = bool(obj.get("missing_info"))
+            except Exception:
+                pass
             # Update session entertainment flag if mentioned in this answer
             try:
                 if not ent_flag:
@@ -375,14 +446,33 @@ class RAGAgent:
             # On any error, return the original text cleaned
             return self._clean_text(text)
 
+    def get_last_diagnostics(self, session_id: str) -> Dict[str, Any]:
+        """Expose last retrieval/generation diagnostics for a session to the server layer."""
+        return dict(self.session_diagnostics.get(session_id, {}))
+
+    # --------------------
+    # Session persistence is DB-backed via server inserts; hydrate from DB when needed.
+    # --------------------
+
     def chat(self, message: str, session_id: str) -> str:
         """Main chat method without langgraph: retrieve -> generate"""
-        # Get or create session history
+        # Hydrate from DB if not in memory
         if session_id not in self.session_memory:
-            self.session_memory[session_id] = []
+            try:
+                rows = fetch_history(session_id)
+                msgs: List[Any] = []
+                for r in rows:
+                    if r.get("role") == "user":
+                        msgs.append(HumanMessage(content=r.get("content", "")))
+                    elif r.get("role") == "assistant":
+                        msgs.append(AIMessage(content=r.get("content", "")))
+                self.session_memory[session_id] = msgs
+            except Exception as e:
+                print(f"[RAG] Failed to hydrate history from DB: {e}")
+                self.session_memory[session_id] = []
         self.session_flags.setdefault(session_id, {"entertainment_mentioned": False})
 
-        # Add user message to history
+        # Add user message to in-memory history (DB insert is handled in server)
         self.session_memory[session_id].append(HumanMessage(content=message))
 
         # Prepare state
@@ -396,16 +486,27 @@ class RAGAgent:
         state = self.retrieve_context(state)
         state = self.generate_response(state)
 
-        # Update session memory with AI response
+        # Update session memory with AI response (DB insert is handled in server)
         self.session_memory[session_id].append(state["messages"][-1])
 
         # Return the AI response
         return state["messages"][-1].content
 
     def get_chat_history(self, session_id: str) -> List[Dict[str, str]]:
-        """Get chat history for a session"""
+        """Get chat history for a session (hydrates from DB if not cached)."""
         if session_id not in self.session_memory:
-            return []
+            try:
+                rows = fetch_history(session_id)
+                msgs: List[Any] = []
+                for r in rows:
+                    if r.get("role") == "user":
+                        msgs.append(HumanMessage(content=r.get("content", "")))
+                    elif r.get("role") == "assistant":
+                        msgs.append(AIMessage(content=r.get("content", "")))
+                self.session_memory[session_id] = msgs
+            except Exception as e:
+                print(f"[RAG] Failed to hydrate history from DB: {e}")
+                self.session_memory[session_id] = []
 
         history = []
         for msg in self.session_memory[session_id]:
