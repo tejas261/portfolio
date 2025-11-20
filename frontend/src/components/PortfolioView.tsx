@@ -15,12 +15,6 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-const heroStats = [
-  { label: "Production Deploys", value: "25+" },
-  { label: "Agentic Automations", value: "08" },
-  { label: "Collab Teams", value: "12" },
-];
-
 const sectionVariants = {
   hidden: { opacity: 0, y: 40 },
   visible: { opacity: 1, y: 0 },
@@ -165,21 +159,6 @@ const PortfolioView: React.FC = () => {
               View Projects
             </motion.a>
           </motion.div>
-
-          <div className="hero-stats">
-            {heroStats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                className="hero-stat-card"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 + index * 0.1, duration: 0.5 }}
-              >
-                <span className="hero-stat-value">{stat.value}</span>
-                <span className="hero-stat-label">{stat.label}</span>
-              </motion.div>
-            ))}
-          </div>
         </motion.div>
 
         <div className="hero-decoration">
