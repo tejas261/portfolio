@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { motion } from "framer-motion";
 import { portfolioData } from "../data/mock.js";
 import {
   Briefcase,
@@ -12,14 +13,25 @@ import {
   Award,
   Book,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+const heroStats = [
+  { label: "Production Deploys", value: "25+" },
+  { label: "Agentic Automations", value: "08" },
+  { label: "Collab Teams", value: "12" },
+];
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0 },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0 },
+};
 
 const PortfolioView: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
-
   async function downloadResume() {
     const response = await fetch(
       `${import.meta.env.VITE_BACKEND_URL}/api/resume`
@@ -32,30 +44,150 @@ const PortfolioView: React.FC = () => {
     a.click();
   }
 
+  const skillSections = [
+    { title: "Languages", items: portfolioData.skills.languages },
+    { title: "Frontend", items: portfolioData.skills.frontend },
+    { title: "Backend", items: portfolioData.skills.backend },
+    {
+      title: "AI & Agentic Systems",
+      items: portfolioData.skills.ai,
+      highlight: true,
+    },
+    { title: "Databases", items: portfolioData.skills.databases },
+    { title: "Tools & Platforms", items: portfolioData.skills.tools },
+  ];
+
+  const contactItems: Array<{
+    label: string;
+    icon: LucideIcon;
+    href?: string;
+    external?: boolean;
+    action?: () => void;
+  }> = [
+    {
+      label: portfolioData.personal.email,
+      icon: Mail,
+      href: `mailto:${portfolioData.personal.email}`,
+    },
+    {
+      label: "Download Resume",
+      icon: Download,
+      action: downloadResume,
+    },
+    {
+      label: portfolioData.personal.location,
+      icon: MapPin,
+    },
+    {
+      label: "GitHub",
+      icon: Github,
+      href: portfolioData.personal.github,
+      external: true,
+    },
+    {
+      label: "LinkedIn",
+      icon: Linkedin,
+      href: portfolioData.personal.linkedin,
+      external: true,
+    },
+  ];
+
   return (
     <div className="portfolio-container">
       {/* Hero Section */}
-      <section className="hero-section">
-        <div className={`hero-content ${isVisible ? "fade-in" : ""}`}>
-          <div className="hero-label">Full Stack Developer • AI Engineer</div>
-          <h1 className="hero-title">{portfolioData.personal.name}</h1>
-          <p className="hero-tagline">{portfolioData.personal.tagline}</p>
-          <p className="hero-bio">{portfolioData.personal.bio}</p>
-          <div className="hero-cta">
-            <a href="#contact" className="cta-primary">
+      <motion.section
+        className="hero-section"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        <motion.div className="hero-content">
+          <motion.div
+            className="hero-label glass-pill"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 120 }}
+          >
+            Full Stack Developer • AI Engineer
+          </motion.div>
+
+          <motion.h1
+            className="hero-title"
+            variants={sectionVariants}
+            initial="hidden"
+            animate="visible"
+            transition={{ delay: 0.25, duration: 0.7 }}
+          >
+            {portfolioData.personal.name}
+          </motion.h1>
+
+          <motion.p
+            className="hero-tagline"
+            variants={sectionVariants}
+            initial="hidden"
+            animate="visible"
+            transition={{ delay: 0.35, duration: 0.6 }}
+          >
+            {portfolioData.personal.tagline}
+          </motion.p>
+
+          <motion.p
+            className="hero-bio"
+            variants={sectionVariants}
+            initial="hidden"
+            animate="visible"
+            transition={{ delay: 0.45, duration: 0.6 }}
+          >
+            {portfolioData.personal.bio}
+          </motion.p>
+
+          <motion.div
+            className="hero-cta"
+            variants={sectionVariants}
+            initial="hidden"
+            animate="visible"
+            transition={{ delay: 0.55, duration: 0.6 }}
+          >
+            <motion.a
+              href="#contact"
+              className="cta-primary"
+              whileHover={{ scale: 1.04, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
               Get In Touch
-            </a>
-            <a href="#projects" className="cta-secondary">
+            </motion.a>
+            <motion.a
+              href="#projects"
+              className="cta-secondary"
+              whileHover={{ scale: 1.04, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
               View Projects
-            </a>
+            </motion.a>
+          </motion.div>
+
+          <div className="hero-stats">
+            {heroStats.map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                className="hero-stat-card"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 + index * 0.1, duration: 0.5 }}
+              >
+                <span className="hero-stat-value">{stat.value}</span>
+                <span className="hero-stat-label">{stat.label}</span>
+              </motion.div>
+            ))}
           </div>
-        </div>
+        </motion.div>
+
         <div className="hero-decoration">
-          <div className="floating-shape shape-1"></div>
-          <div className="floating-shape shape-2"></div>
-          <div className="floating-shape shape-3"></div>
+          <div className="floating-shape shape-1" />
+          <div className="floating-shape shape-2" />
+          <div className="floating-shape shape-3" />
         </div>
-      </section>
+      </motion.section>
 
       {/* Experience Section */}
       <section className="section-container" id="experience">
@@ -65,10 +197,15 @@ const PortfolioView: React.FC = () => {
         </div>
         <div className="timeline">
           {portfolioData.experience.map((exp, index) => (
-            <div
+            <motion.article
               key={exp.id}
-              className={`timeline-item ${isVisible ? "slide-up" : ""}`}
-              style={{ animationDelay: `${index * 0.2}s` }}
+              className="timeline-item"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              variants={sectionVariants}
+              whileHover={{ x: 6 }}
             >
               <div className="timeline-marker max-md:-left-[30px]" />
               <div className="timeline-content">
@@ -92,7 +229,7 @@ const PortfolioView: React.FC = () => {
                   ))}
                 </div>
               </div>
-            </div>
+            </motion.article>
           ))}
         </div>
       </section>
@@ -105,10 +242,15 @@ const PortfolioView: React.FC = () => {
         </div>
         <div className="projects-grid">
           {portfolioData.projects.map((project, index) => (
-            <div
+            <motion.article
               key={project.id}
-              className={`project-card ${isVisible ? "fade-in" : ""}`}
-              style={{ animationDelay: `${index * 0.2}s` }}
+              className="project-card"
+              variants={cardVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              whileHover={{ y: -12, scale: 1.01 }}
             >
               <div className="project-header">
                 <h3 className="project-name">{project.name}</h3>
@@ -135,7 +277,7 @@ const PortfolioView: React.FC = () => {
                 ))}
               </div>
               <div className="project-date">{project.date}</div>
-            </div>
+            </motion.article>
           ))}
         </div>
       </section>
@@ -147,66 +289,31 @@ const PortfolioView: React.FC = () => {
           <h2 className="section-title">Technical Skills</h2>
         </div>
         <div className="skills-grid">
-          <div className="skill-category">
-            <h3 className="skill-category-title">Languages</h3>
-            <div className="skill-tags">
-              {portfolioData.skills.languages.map((skill, i) => (
-                <span key={i} className="skill-tag">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="skill-category">
-            <h3 className="skill-category-title">Frontend</h3>
-            <div className="skill-tags">
-              {portfolioData.skills.frontend.map((skill, i) => (
-                <span key={i} className="skill-tag">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="skill-category">
-            <h3 className="skill-category-title">Backend</h3>
-            <div className="skill-tags">
-              {portfolioData.skills.backend.map((skill, i) => (
-                <span key={i} className="skill-tag">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="skill-category">
-            <h3 className="skill-category-title">AI & Agentic Systems</h3>
-            <div className="skill-tags">
-              {portfolioData.skills.ai.map((skill, i) => (
-                <span key={i} className="skill-tag skill-tag-highlight">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="skill-category">
-            <h3 className="skill-category-title">Databases</h3>
-            <div className="skill-tags">
-              {portfolioData.skills.databases.map((skill, i) => (
-                <span key={i} className="skill-tag">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="skill-category">
-            <h3 className="skill-category-title">Tools & Platforms</h3>
-            <div className="skill-tags">
-              {portfolioData.skills.tools.map((skill, i) => (
-                <span key={i} className="skill-tag">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
+          {skillSections.map((section, index) => (
+            <motion.div
+              key={section.title}
+              className="skill-category"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: index * 0.05 }}
+              variants={cardVariants}
+            >
+              <h3 className="skill-category-title">{section.title}</h3>
+              <div className="skill-tags">
+                {section.items.map((skill) => (
+                  <span
+                    key={skill}
+                    className={`skill-tag ${
+                      section.highlight ? "skill-tag-highlight" : ""
+                    }`}
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
@@ -216,7 +323,14 @@ const PortfolioView: React.FC = () => {
           <Book className="section-icon" />
           <h2 className="section-title">Education</h2>
         </div>
-        <div className="education-card">
+        <motion.div
+          className="education-card"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6 }}
+        >
           <h3 className="education-degree">{portfolioData.education.degree}</h3>
           <div className="education-institution">
             {portfolioData.education.institution}
@@ -227,7 +341,7 @@ const PortfolioView: React.FC = () => {
               CGPA: {portfolioData.education.cgpa}
             </span>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Contact Section */}
@@ -237,39 +351,55 @@ const PortfolioView: React.FC = () => {
           <h2 className="section-title">Let's Connect</h2>
         </div>
         <div className="contact-grid">
-          <a
-            href={`mailto:${portfolioData.personal.email}`}
-            className="contact-item"
-          >
-            <Mail size={24} />
-            <span>{portfolioData.personal.email}</span>
-          </a>
-          <a href="#contact" onClick={downloadResume} className="contact-item">
-            <Download size={24} />
-            <span>Download Resume</span>
-          </a>
-          <div className="contact-item">
-            <MapPin size={24} />
-            <span>{portfolioData.personal.location}</span>
-          </div>
-          <a
-            href={portfolioData.personal.github}
-            className="contact-item"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Github size={24} />
-            <span>GitHub</span>
-          </a>
-          <a
-            href={portfolioData.personal.linkedin}
-            className="contact-item"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Linkedin size={24} />
-            <span>LinkedIn</span>
-          </a>
+          {contactItems.map((item) => {
+            const Content = (
+              <>
+                <item.icon size={24} />
+                <span>{item.label}</span>
+              </>
+            );
+
+            if (item.href) {
+              return (
+                <motion.a
+                  key={item.label}
+                  href={item.href}
+                  className="contact-item"
+                  target={item.external ? "_blank" : undefined}
+                  rel={item.external ? "noopener noreferrer" : undefined}
+                  whileHover={{ y: -6, scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {Content}
+                </motion.a>
+              );
+            }
+
+            if (item.action) {
+              return (
+                <motion.button
+                  key={item.label}
+                  className="contact-item"
+                  onClick={item.action}
+                  type="button"
+                  whileHover={{ y: -6, scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {Content}
+                </motion.button>
+              );
+            }
+
+            return (
+              <motion.div
+                key={item.label}
+                className="contact-item"
+                whileHover={{ y: -6, scale: 1.01 }}
+              >
+                {Content}
+              </motion.div>
+            );
+          })}
         </div>
       </section>
     </div>

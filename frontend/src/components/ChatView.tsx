@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Send, Bot, User, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Send, User } from "lucide-react";
 import axios from "axios";
 import image from "../assets/pic.jpg";
 
@@ -28,10 +29,13 @@ const ChatView: React.FC<Props> = ({ sessionId, visitorId }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [useRealAPI, setUseRealAPI] = useState(true);
   const [apiError, setApiError] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const node = messagesContainerRef.current;
+    if (node) {
+      node.scrollTo({ top: node.scrollHeight, behavior: "smooth" });
+    }
   };
 
   useEffect(() => {
@@ -115,57 +119,60 @@ const ChatView: React.FC<Props> = ({ sessionId, visitorId }) => {
     }
   };
 
-  return (
-    <div className="chat-container h-[90vh]">
-      <div className="chat-header">
-        <div className="chat-header-content">
-          <Bot className="chat-header-icon" />
-          <div>
-            <h2 className="chat-header-title">Chat with Tejas</h2>
-            <p className="chat-header-subtitle">
-              {apiError
-                ? "⚠️ Limited responses - Add API key for full chat"
-                : "Ask me anything"}
-            </p>
-          </div>
-        </div>
-      </div>
-      {/* 
-      {apiError && (
-        <div className="api-error-banner">
-          <AlertCircle size={16} />
-          <span>AI backend not configured. Please add an API key.</span>
-        </div>
-      )} */}
+  const messageVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+  };
 
-      <div className="chat-messages h-80">
-        {messages.map((message) => (
-          <div key={message.id} className={`message-wrapper ${message.sender}`}>
-            <div className="message-avatar">
-              {message.sender === "bot" ? (
-                <img
-                  src={image}
-                  alt="owner"
-                  className="rounded-full scale-150 w-7 h-7 object-cover"
-                />
-              ) : (
-                <User size={20} />
-              )}
-            </div>
-            <div className="message-bubble">
-              <p className="message-text">{message.text}</p>
-              <span className="message-time">
-                {message.timestamp.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-            </div>
-          </div>
-        ))}
+  return (
+    <motion.div
+      className="chat-container"
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
+      <div className="chat-messages h-full" ref={messagesContainerRef}>
+        <AnimatePresence initial={false}>
+          {messages.map((message) => (
+            <motion.div
+              key={message.id}
+              className={`message-wrapper ${message.sender}`}
+              layout
+              variants={messageVariants}
+              initial="initial"
+              animate="animate"
+              transition={{ duration: 0.3 }}
+            >
+              <div className="message-avatar">
+                {message.sender === "bot" ? (
+                  <img
+                    src={image}
+                    alt="owner"
+                    className="rounded-full scale-150 w-7 h-7 object-cover"
+                  />
+                ) : (
+                  <User size={20} />
+                )}
+              </div>
+              <div className="message-bubble">
+                <p className="message-text">{message.text}</p>
+                <span className="message-time">
+                  {message.timestamp.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
 
         {isTyping && (
-          <div className="message-wrapper bot">
+          <motion.div
+            className="message-wrapper bot"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
             <div className="message-avatar">
               <img
                 src={image}
@@ -178,9 +185,8 @@ const ChatView: React.FC<Props> = ({ sessionId, visitorId }) => {
               <span></span>
               <span></span>
             </div>
-          </div>
+          </motion.div>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       <div className="chat-input-container">
@@ -193,16 +199,18 @@ const ChatView: React.FC<Props> = ({ sessionId, visitorId }) => {
             placeholder="Ask about experience, projects, skills..."
             className="chat-input"
           />
-          <button
+          <motion.button
             onClick={handleSend}
             className="chat-send-button"
             disabled={!input.trim()}
+            whileHover={{ scale: input.trim() ? 1.05 : 1 }}
+            whileTap={{ scale: input.trim() ? 0.96 : 1 }}
           >
             <Send size={20} />
-          </button>
+          </motion.button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
