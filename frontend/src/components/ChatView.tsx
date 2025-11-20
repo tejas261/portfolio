@@ -180,7 +180,7 @@ const ChatView: React.FC<Props> = ({ sessionId, visitorId }) => {
                 className="rounded-full scale-150 w-7 h-7 object-cover"
               />
             </div>
-            <div className="message-bubble typing-indicator">
+            <div className="bg-transparent mt-2 typing-indicator">
               <span></span>
               <span></span>
               <span></span>
