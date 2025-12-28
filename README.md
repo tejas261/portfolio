@@ -1,11 +1,3 @@
----
-title: Portfolio Backend
-emoji: 🚀
-colorFrom: indigo
-colorTo: purple
-sdk: docker
-pinned: false
----
 # 🤖 AI-Powered Portfolio
 
 A modern, intelligent portfolio application featuring a RAG-based (Retrieval Augmented Generation) conversational AI assistant powered by GPT-4, LangChain, and LangGraph.
